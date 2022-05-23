@@ -248,11 +248,11 @@ int crypto_kem_dec(unsigned char *ss, const unsigned char *ct, const unsigned ch
     ct_select((uint8_t*)Fin_k, (uint8_t*)kprime, (uint8_t*)sk_s, CRYPTO_BYTES, selector);
     shake(ss, CRYPTO_BYTES, Fin, CRYPTO_CIPHERTEXTBYTES + CRYPTO_BYTES);
 
-/*
+ 
     printf("\n");
     printf("Key printed during the decryption:\n");
     for (int i=0;i<CRYPTO_BYTES; i++) printf("%d ", ss[i]);
-  */  
+
     // Cleanup:
     clear_bytes((uint8_t *)W, PARAMS_NBAR*PARAMS_NBAR*sizeof(uint16_t));
     clear_bytes((uint8_t *)Sp, PARAMS_N*PARAMS_NBAR*sizeof(uint16_t));
@@ -331,12 +331,12 @@ unsigned char * secret_key_recovery(const unsigned char *ct, const unsigned char
     for(int i=0;i<CRYPTO_BYTES;i++) Fin_k[i]=kprime[i];
     // Compute the hash  ss = F(ct||KK) 
     shake(ss, CRYPTO_BYTES, Fin, CRYPTO_CIPHERTEXTBYTES + CRYPTO_BYTES);
-    /*
+    
     printf("\n");
     printf("Key recovery:\n");
     for (int i=0;i<CRYPTO_BYTES; i++) printf("%d ", ss[i]);
     printf("\n");
-     */
+    
        
     
     // Cleanup:

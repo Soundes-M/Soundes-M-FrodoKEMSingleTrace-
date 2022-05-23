@@ -24,9 +24,8 @@ void frodo_sample_n(uint16_t *s, const size_t n)
             sample += (uint16_t)(CDF_TABLE[j] - prnd) >> 15;
         }
         // Assuming that sign is either 0 or 1, flips sample iff sign = 1
-      
+         
         s[i] = ((-sign) ^ sample) + sign; 
        
     }
 }
- 

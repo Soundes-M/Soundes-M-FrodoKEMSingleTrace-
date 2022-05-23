@@ -6,7 +6,6 @@
 *********************************************************************************************/
 
 #include "api.h"
- 
 #include "frodo_macrify.h"
 
 
@@ -28,11 +27,6 @@
 // CDF table
 uint16_t CDF_TABLE[13] = {4643, 13363, 20579, 25843, 29227, 31145, 32103, 32525, 32689, 32745, 32762, 32766, 32767};
 uint16_t CDF_TABLE_LEN = 13;
-
-//added for the contermeasure by the paper https://www.mdpi.com/2076-3417/8/10/1809
-//the array will be initialized during the keygeneration 
-uint16_t CDF_TABLE_COUNTER[127] = {0};
-uint16_t CDF_TABLE_LEN_COUNTER = 127;
 
 #include "kem.c"
 #include "noise.c"

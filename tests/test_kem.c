@@ -21,9 +21,8 @@
 #define BYTES_PKHASH CRYPTO_BYTES
  
 
-
-
-
+ 
+ 
 static int kem_test(const char *named_parameters, int iterations) 
 {
  
@@ -37,7 +36,17 @@ uint8_t ss_encap[CRYPTO_BYTES], ss_decap[CRYPTO_BYTES];
 uint16_t s[2*PARAMS_N*PARAMS_NBAR] = {0};   
 uint8_t ct[CRYPTO_CIPHERTEXTBYTES];
 uint8_t pk[CRYPTO_PUBLICKEYBYTES];
- 
+
+        crypto_kem_keypair(pk, sk); 
+        crypto_kem_enc(ct, ss_encap, pk); 
+        crypto_kem_dec(ss_decap, ct, sk);
+        secret_key_recovery(ct, pk);
+        
+        if (memcmp(ss_encap, ss_decap, CRYPTO_BYTES) != 0) {
+            printf("\n ERROR!\n");
+	        return false; 
+        }
+    
     printf("Tests PASSED. All session keys matched.\n");
     printf("\n\n");
 
@@ -72,10 +81,8 @@ int main()
            printf("=============================================================================================================================\n");
     printf("Testing correctness of key encapsulation mechanism (KEM)\n" );
     printf("=============================================================================================================================\n");
-     run_test();
-     
-     
-/*uint8_t sk[CRYPTO_SECRETKEYBYTES];
+    
+uint8_t sk[CRYPTO_SECRETKEYBYTES];
 uint8_t ss_encap[CRYPTO_BYTES], ss_decap[CRYPTO_BYTES];
 uint16_t s[2*PARAMS_N*PARAMS_NBAR] = {0};   
 uint8_t ct[CRYPTO_CIPHERTEXTBYTES];
@@ -90,8 +97,8 @@ uint8_t pk[CRYPTO_PUBLICKEYBYTES];
             printf("\n ERROR!\n");
 	        return false; 
         }
-    */
-    printf("Tests PASSED. All session keys matched.\n");
+    
+    printf("Tests PASSED.\n");
     printf("\n\n");
 
 
