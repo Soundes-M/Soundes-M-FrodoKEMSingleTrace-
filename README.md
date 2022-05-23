@@ -7,15 +7,21 @@ make
 ```
 
 then run:
+```
 ./frodo/test_KEM
+```
 
-If the simulation is correct, you should see the message Test PASSED
+If the simulation is correct, you should see the message ```Test PASSED```
 
 To run the power analysis, run:
+```
 cd chipwhisperer/
+```
 
 Then:
+```
 jupyter notebook
+```
 
 then go to the folder jupyter and open the file Attack on FrodoKEM (PA).ipynb
 and excute it.
