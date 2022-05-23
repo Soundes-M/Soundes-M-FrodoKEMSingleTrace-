@@ -7,7 +7,7 @@
 #include <string.h>
 #include "sha3/fips202.h"
 
- 
+#define COUNTERMEASURES 0
 
 uint16_t Sp_side_channel[(2*PARAMS_N+PARAMS_NBAR)*PARAMS_NBAR] = {0};  // contains secret data
 uint16_t Epp_side_channel[2*PARAMS_N*PARAMS_NBAR] = {0};
@@ -250,9 +250,11 @@ int crypto_kem_dec(unsigned char *ss, const unsigned char *ct, const unsigned ch
 
  
     printf("\n");
-    printf("Key printed during the decryption:\n");
+    printf("Session key printed during the decryption:\n");
     for (int i=0;i<CRYPTO_BYTES; i++) printf("%d ", ss[i]);
-
+    printf("\n");
+    
+    
     // Cleanup:
     clear_bytes((uint8_t *)W, PARAMS_NBAR*PARAMS_NBAR*sizeof(uint16_t));
     clear_bytes((uint8_t *)Sp, PARAMS_N*PARAMS_NBAR*sizeof(uint16_t));
@@ -333,10 +335,10 @@ unsigned char * secret_key_recovery(const unsigned char *ct, const unsigned char
     shake(ss, CRYPTO_BYTES, Fin, CRYPTO_CIPHERTEXTBYTES + CRYPTO_BYTES);
     
     printf("\n");
-    printf("Key recovery:\n");
+    printf("Session Key recovery:\n");
     for (int i=0;i<CRYPTO_BYTES; i++) printf("%d ", ss[i]);
     printf("\n");
-    
+    printf("\n");
        
     
     // Cleanup:

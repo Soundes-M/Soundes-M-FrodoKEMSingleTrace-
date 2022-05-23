@@ -14,4 +14,4 @@
 
 #define SYSTEM_NAME    "FrodoKEM-640"
 
-#include "test_kem.c"
+#include "tests/test_kem.c"

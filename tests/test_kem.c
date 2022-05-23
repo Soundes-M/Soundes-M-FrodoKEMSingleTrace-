@@ -76,10 +76,11 @@ int main()
 {
     int OK = true; 
     
-   
+  
+
     printf("\n");
            printf("=============================================================================================================================\n");
-    printf("Testing correctness of key encapsulation mechanism (KEM)\n" );
+    printf("Simulated attack against FrodoKEM\n" );
     printf("=============================================================================================================================\n");
     
 uint8_t sk[CRYPTO_SECRETKEYBYTES];
@@ -87,10 +88,18 @@ uint8_t ss_encap[CRYPTO_BYTES], ss_decap[CRYPTO_BYTES];
 uint16_t s[2*PARAMS_N*PARAMS_NBAR] = {0};   
 uint8_t ct[CRYPTO_CIPHERTEXTBYTES];
 uint8_t pk[CRYPTO_PUBLICKEYBYTES];
-
+        
+        printf("Key Generation\n" );
         crypto_kem_keypair(pk, sk); 
+        
+        printf("Key Encapsulation\n" );
         crypto_kem_enc(ct, ss_encap, pk); 
+        
+        
+        printf("Key Decapsulation\n \n" );
+        printf("Getting Side-channels during decapsulation\n" );
         crypto_kem_dec(ss_decap, ct, sk);
+        
         secret_key_recovery(ct, pk);
         
         if (memcmp(ss_encap, ss_decap, CRYPTO_BYTES) != 0) {

@@ -8,6 +8,12 @@
 #define _CONFIG_H_
 
 
+//added by Soundes
+
+#ifndef FALCON_CONFIG_H__
+#define FALCON_CONFIG_H__
+#endif
+
 // Definition of compiler
 
 #define COMPILER_GCC     1

@@ -5,8 +5,14 @@
 *********************************************************************************************/
 
 #include "sha3/fips202.h"
+#include <assert.h>
 
+//include files to call the new Gaussian sampler
+#include "inner.h"
+#include "falcon.h"
 
+/*
+NON-AVX
 void frodo_sample_n(uint16_t *s, const size_t n) 
 { // Fills vector s with n samples from the noise distribution which requires 16 bits to sample. 
   // The distribution is specified by its CDF.
@@ -28,4 +34,25 @@ void frodo_sample_n(uint16_t *s, const size_t n)
         s[i] = ((-sign) ^ sample) + sign; 
        
     }
+}
+*/
+
+void frodo_sample_n(uint16_t *s, const size_t n)  
+{
+        inner_shake256_context rng;
+	sampler_context sc;
+	fpr isigma, mu, muinc;   
+
+	inner_shake256_init(&rng);
+	inner_shake256_inject(&rng, (const void *)"test sampler", 12);
+	inner_shake256_flip(&rng);
+	Zf(prng_init)(&sc.p, &rng);
+	sc.sigma_min = fpr_sigma_min[9];
+
+	isigma = fpr_div(fpr_of(10), fpr_of(28));// sigma is 2.8 for Frodo640
+	mu = fpr_neg(fpr_one);
+	for(int i=0;i<n;i++) 
+		s[i] = Zf(sampler)(&sc, mu, isigma); 
+	
+	 
 }

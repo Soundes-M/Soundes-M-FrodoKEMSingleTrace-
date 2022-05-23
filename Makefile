@@ -66,14 +66,33 @@ objs/frodo640.o: frodo640.c
 	@mkdir -p $(@D)
 	$(CC) -c  $(CFLAGS) $< -o $@
 
+objs/falcon.o: falcon.c
+	@mkdir -p $(@D)
+	$(CC) -c  $(CFLAGS) $< -o $@
+	
+objs/fpr.o: fpr.c
+	@mkdir -p $(@D)
+	$(CC) -c  $(CFLAGS) $< -o $@
 
+objs/sign.o: sign.c
+	@mkdir -p $(@D)
+	$(CC) -c  $(CFLAGS) $< -o $@
+	
+objs/shake.o: shake.c
+	@mkdir -p $(@D)
+	$(CC) -c  $(CFLAGS) $< -o $@
+	
+objs/rng_2.o: rng_2.c
+	@mkdir -p $(@D)
+	$(CC) -c  $(CFLAGS) $< -o $@	
+	
 # RAND
 objs/random/random.o: random/random.h
 RAND_OBJS := objs/random/random.o
 
 # KEM_FRODO
-KEM_FRODO640_OBJS := $(addprefix objs/, frodo640.o util.o)
-KEM_FRODO640_HEADERS := api.h config.h frodo_macrify.h
+KEM_FRODO640_OBJS := $(addprefix objs/, frodo640.o sign.o rng_2.o shake.o util.o falcon.o fpr.o)
+KEM_FRODO640_HEADERS := api.h config.h frodo_macrify.h inner.h falcon.h fpr.h
 $(KEM_FRODO640_OBJS): $(KEM_FRODO640_HEADERS)
 
 # AES
@@ -92,8 +111,8 @@ lib640: $(KEM_FRODO640_OBJS) $(RAND_OBJS) $(AES_OBJS) $(SHAKE_OBJS)
 	$(AR) frodo/libfrodo.a $^
 	$(RANLIB) frodo/libfrodo.a
 
-tests: lib640 tests/ds_benchmark.h
-	$(CC) $(CFLAGS) -L./frodo tests/test_KEM640.c -lfrodo $(LDFLAGS) -o frodo/test_KEM $(ARM_SETTING)
+tests: lib640 ds_benchmark.h
+	$(CC) $(CFLAGS) -L./frodo test_KEM640.c -lfrodo $(LDFLAGS) -o frodo/test_KEM $(ARM_SETTING)
 
 
 lib640_for_KATs: $(KEM_FRODO640_OBJS) $(AES_OBJS) $(SHAKE_OBJS)
@@ -102,9 +121,9 @@ lib640_for_KATs: $(KEM_FRODO640_OBJS) $(AES_OBJS) $(SHAKE_OBJS)
 
 KATS: lib640_for_KATs
 ifeq "$(GENERATION_A)" "SHAKE128"
-	$(CC) $(CFLAGS) -L./frodo tests/PQCtestKAT_kem_shake.c tests/rng.c -lfrodo_for_testing $(LDFLAGS) -o frodo/PQCtestKAT_kem_shake $(ARM_SETTING)
+	$(CC) $(CFLAGS) -L./frodo PQCtestKAT_kem_shake.c rng.c -lfrodo_for_testing $(LDFLAGS) -o frodo/PQCtestKAT_kem_shake $(ARM_SETTING)
 else
-	$(CC) $(CFLAGS) -L./frodo tests/PQCtestKAT_kem.c tests/rng.c -lfrodo_for_testing $(LDFLAGS) -o frodo/PQCtestKAT_kem $(ARM_SETTING)
+	$(CC) $(CFLAGS) -L./frodo PQCtestKAT_kem.c rng.c -lfrodo_for_testing $(LDFLAGS) -o frodo/PQCtestKAT_kem $(ARM_SETTING)
 endif
 
 check: tests
