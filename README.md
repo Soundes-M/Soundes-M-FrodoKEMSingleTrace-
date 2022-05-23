@@ -2,7 +2,9 @@
 git clone https://github.com/Soundes-M/Soundes-M-FrodoKEMSingleTrace-.git
 
 run:
+```
 make
+```
 
 then run:
 ./frodo/test_KEM
