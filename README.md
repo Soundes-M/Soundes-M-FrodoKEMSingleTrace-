@@ -1,5 +1,9 @@
 # Soundes-M-FrodoKEMSingleTrace-
+This code contains two parts: the simulation of a single trace attack against FrodoKEM, and a power analysis attack agains the Gaussian sampler callsed in FrodoKEM, and countermeasure implementation of the Gaussian sample. First, excute:
+
+```
 git clone https://github.com/Soundes-M/Soundes-M-FrodoKEMSingleTrace-.git
+```
 
 run:
 ```
