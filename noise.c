@@ -9,7 +9,7 @@
 
 //include files to call the new Gaussian sampler
 #include "inner.h"
-#include "falcon.h"
+#include "Frodo.h"
 
 /*
 NON-AVX

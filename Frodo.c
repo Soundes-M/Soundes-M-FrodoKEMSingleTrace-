@@ -1,9 +1,9 @@
 /*
- * Implementation of the external Falcon API.
+ * Implementation of the external Frodo API.
  *
  * ==========================(LICENSE BEGIN)============================
  *
- * Copyright (c) 2017-2019  Falcon Project
+ * Copyright (c) 2017-2019  Frodo Project
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -29,38 +29,38 @@
  * @author   Thomas Pornin <thomas.pornin@nccgroup.com>
  */
 
-#include "falcon.h"
+#include "Frodo.h"
 #include "inner.h"
 
-/* see falcon.h */
+/* see Frodo.h */
 void
 shake256_init(shake256_context *sc)
 {
 	inner_shake256_init((inner_shake256_context *)sc);
 }
 
-/* see falcon.h */
+/* see Frodo.h */
 void
 shake256_inject(shake256_context *sc, const void *data, size_t len)
 {
 	inner_shake256_inject((inner_shake256_context *)sc, data, len);
 }
 
-/* see falcon.h */
+/* see Frodo.h */
 void
 shake256_flip(shake256_context *sc)
 {
 	inner_shake256_flip((inner_shake256_context *)sc);
 }
 
-/* see falcon.h */
+/* see Frodo.h */
 void
 shake256_extract(shake256_context *sc, void *out, size_t len)
 {
 	inner_shake256_extract((inner_shake256_context *)sc, out, len);
 }
 
-/* see falcon.h */
+/* see Frodo.h */
 void
 shake256_init_prng_from_seed(shake256_context *sc,
 	const void *seed, size_t seed_len)
@@ -69,14 +69,14 @@ shake256_init_prng_from_seed(shake256_context *sc,
 	shake256_inject(sc, seed, seed_len);
 }
 
-/* see falcon.h */
+/* see Frodo.h */
 int
 shake256_init_prng_from_system(shake256_context *sc)
 {
 	uint8_t seed[48];
 
 	if (!Zf(get_seed)(seed, sizeof seed)) {
-		return FALCON_ERR_RANDOM;
+		return Frodo_ERR_RANDOM;
 	}
 	shake256_init(sc);
 	shake256_inject(sc, seed, sizeof seed);
@@ -123,9 +123,9 @@ align_fpr(void *tmp)
 	return (fpr *)atmp;
 }
 
-/* see falcon.h */
+/* see Frodo.h */
 int
-falcon_keygen_make(
+Frodo_keygen_make(
 	shake256_context *rng,
 	unsigned logn,
 	void *privkey, size_t privkey_len,
@@ -143,13 +143,13 @@ falcon_keygen_make(
 	 * Check parameters.
 	 */
 	if (logn < 1 || logn > 10) {
-		return FALCON_ERR_BADARG;
+		return Frodo_ERR_BADARG;
 	}
-	if (privkey_len < FALCON_PRIVKEY_SIZE(logn)
-		|| (pubkey != NULL && pubkey_len < FALCON_PUBKEY_SIZE(logn))
-		|| tmp_len < FALCON_TMPSIZE_KEYGEN(logn))
+	if (privkey_len < Frodo_PRIVKEY_SIZE(logn)
+		|| (pubkey != NULL && pubkey_len < Frodo_PUBKEY_SIZE(logn))
+		|| tmp_len < Frodo_TMPSIZE_KEYGEN(logn))
 	{
-		return FALCON_ERR_SIZE;
+		return Frodo_ERR_SIZE;
 	}
 
 	/*
@@ -169,29 +169,29 @@ falcon_keygen_make(
 	 * Encode private key.
 	 */
 	sk = privkey;
-	sk_len = FALCON_PRIVKEY_SIZE(logn);
+	sk_len = Frodo_PRIVKEY_SIZE(logn);
 	sk[0] = 0x50 + logn;
 	u = 1;
 	v = Zf(trim_i8_encode)(sk + u, sk_len - u,
 		f, logn, Zf(max_fg_bits)[logn]);
 	if (v == 0) {
-		return FALCON_ERR_INTERNAL;
+		return Frodo_ERR_INTERNAL;
 	}
 	u += v;
 	v = Zf(trim_i8_encode)(sk + u, sk_len - u,
 		g, logn, Zf(max_fg_bits)[logn]);
 	if (v == 0) {
-		return FALCON_ERR_INTERNAL;
+		return Frodo_ERR_INTERNAL;
 	}
 	u += v;
 	v = Zf(trim_i8_encode)(sk + u, sk_len - u,
 		F, logn, Zf(max_FG_bits)[logn]);
 	if (v == 0) {
-		return FALCON_ERR_INTERNAL;
+		return Frodo_ERR_INTERNAL;
 	}
 	u += v;
 	if (u != sk_len) {
-		return FALCON_ERR_INTERNAL;
+		return Frodo_ERR_INTERNAL;
 	}
 
 	/*
@@ -201,23 +201,23 @@ falcon_keygen_make(
 		h = (uint16_t *)align_u16(g + n);
 		atmp = (uint8_t *)(h + n);
 		if (!Zf(compute_public)(h, f, g, logn, atmp)) {
-			return FALCON_ERR_INTERNAL;
+			return Frodo_ERR_INTERNAL;
 		}
 		pk = pubkey;
-		pk_len = FALCON_PUBKEY_SIZE(logn);
+		pk_len = Frodo_PUBKEY_SIZE(logn);
 		pk[0] = 0x00 + logn;
 		v = Zf(modq_encode)(pk + 1, pk_len - 1, h, logn);
 		if (v != pk_len - 1) {
-			return FALCON_ERR_INTERNAL;
+			return Frodo_ERR_INTERNAL;
 		}
 	}
 
 	return 0;
 }
 
-/* see falcon.h */
+/* see Frodo.h */
 int
-falcon_make_public(
+Frodo_make_public(
 	void *pubkey, size_t pubkey_len,
 	const void *privkey, size_t privkey_len,
 	void *tmp, size_t tmp_len)
@@ -234,23 +234,23 @@ falcon_make_public(
 	 * parameters.
 	 */
 	if (privkey_len == 0) {
-		return FALCON_ERR_FORMAT;
+		return Frodo_ERR_FORMAT;
 	}
 	sk = privkey;
 	if ((sk[0] & 0xF0) != 0x50) {
-		return FALCON_ERR_FORMAT;
+		return Frodo_ERR_FORMAT;
 	}
 	logn = sk[0] & 0x0F;
 	if (logn < 1 || logn > 10) {
-		return FALCON_ERR_FORMAT;
+		return Frodo_ERR_FORMAT;
 	}
-	if (privkey_len != FALCON_PRIVKEY_SIZE(logn)) {
-		return FALCON_ERR_FORMAT;
+	if (privkey_len != Frodo_PRIVKEY_SIZE(logn)) {
+		return Frodo_ERR_FORMAT;
 	}
-	if (pubkey_len < FALCON_PUBKEY_SIZE(logn)
-		|| tmp_len < FALCON_TMPSIZE_MAKEPUB(logn))
+	if (pubkey_len < Frodo_PUBKEY_SIZE(logn)
+		|| tmp_len < Frodo_TMPSIZE_MAKEPUB(logn))
 	{
-		return FALCON_ERR_SIZE;
+		return Frodo_ERR_SIZE;
 	}
 
 	/*
@@ -263,13 +263,13 @@ falcon_make_public(
 	v = Zf(trim_i8_decode)(f, logn, Zf(max_fg_bits)[logn],
 		sk + u, privkey_len - u);
 	if (v == 0) {
-		return FALCON_ERR_FORMAT;
+		return Frodo_ERR_FORMAT;
 	}
 	u += v;
 	v = Zf(trim_i8_decode)(g, logn, Zf(max_fg_bits)[logn],
 		sk + u, privkey_len - u);
 	if (v == 0) {
-		return FALCON_ERR_FORMAT;
+		return Frodo_ERR_FORMAT;
 	}
 
 	/*
@@ -278,41 +278,41 @@ falcon_make_public(
 	h = (uint16_t *)align_u16(g + n);
 	atmp = (uint8_t *)(h + n);
 	if (!Zf(compute_public)(h, f, g, logn, atmp)) {
-		return FALCON_ERR_FORMAT;
+		return Frodo_ERR_FORMAT;
 	}
 
 	/*
 	 * Encode public key.
 	 */
 	pk = pubkey;
-	pk_len = FALCON_PUBKEY_SIZE(logn);
+	pk_len = Frodo_PUBKEY_SIZE(logn);
 	pk[0] = 0x00 + logn;
 	v = Zf(modq_encode)(pk + 1, pk_len - 1, h, logn);
 	if (v != pk_len - 1) {
-		return FALCON_ERR_INTERNAL;
+		return Frodo_ERR_INTERNAL;
 	}
 	return 0;
 }
 
-/* see falcon.h */
+/* see Frodo.h */
 int
-falcon_get_logn(void *obj, size_t len)
+Frodo_get_logn(void *obj, size_t len)
 {
 	int logn;
 
 	if (len == 0) {
-		return FALCON_ERR_FORMAT;
+		return Frodo_ERR_FORMAT;
 	}
 	logn = *(uint8_t *)obj & 0x0F;
 	if (logn < 1 || logn > 10) {
-		return FALCON_ERR_FORMAT;
+		return Frodo_ERR_FORMAT;
 	}
 	return logn;
 }
 
-/* see falcon.h */
+/* see Frodo.h */
 int
-falcon_sign_start(shake256_context *rng,
+Frodo_sign_start(shake256_context *rng,
 	void *nonce,
 	shake256_context *hash_data)
 {
@@ -322,9 +322,9 @@ falcon_sign_start(shake256_context *rng,
 	return 0;
 }
 
-/* see falcon.h */
+/* see Frodo.h */
 int
-falcon_sign_dyn_finish(shake256_context *rng,
+Frodo_sign_dyn_finish(shake256_context *rng,
 	void *sig, size_t *sig_len, int sig_type,
 	const void *privkey, size_t privkey_len,
 	shake256_context *hash_data, const void *nonce,
@@ -346,41 +346,41 @@ falcon_sign_dyn_finish(shake256_context *rng,
 	 * parameters.
 	 */
 	if (privkey_len == 0) {
-		return FALCON_ERR_FORMAT;
+		return Frodo_ERR_FORMAT;
 	}
 	sk = privkey;
 	if ((sk[0] & 0xF0) != 0x50) {
-		return FALCON_ERR_FORMAT;
+		return Frodo_ERR_FORMAT;
 	}
 	logn = sk[0] & 0x0F;
 	if (logn < 1 || logn > 10) {
-		return FALCON_ERR_FORMAT;
+		return Frodo_ERR_FORMAT;
 	}
-	if (privkey_len != FALCON_PRIVKEY_SIZE(logn)) {
-		return FALCON_ERR_FORMAT;
+	if (privkey_len != Frodo_PRIVKEY_SIZE(logn)) {
+		return Frodo_ERR_FORMAT;
 	}
-	if (tmp_len < FALCON_TMPSIZE_SIGNDYN(logn)) {
-		return FALCON_ERR_SIZE;
+	if (tmp_len < Frodo_TMPSIZE_SIGNDYN(logn)) {
+		return Frodo_ERR_SIZE;
 	}
 	es_len = *sig_len;
 	if (es_len < 41) {
-		return FALCON_ERR_SIZE;
+		return Frodo_ERR_SIZE;
 	}
 	switch (sig_type) {
-	case FALCON_SIG_COMPRESSED:
+	case Frodo_SIG_COMPRESSED:
 		break;
-	case FALCON_SIG_PADDED:
-		if (*sig_len < FALCON_SIG_PADDED_SIZE(logn)) {
-			return FALCON_ERR_SIZE;
+	case Frodo_SIG_PADDED:
+		if (*sig_len < Frodo_SIG_PADDED_SIZE(logn)) {
+			return Frodo_ERR_SIZE;
 		}
 		break;
-	case FALCON_SIG_CT:
-		if (*sig_len < FALCON_SIG_CT_SIZE(logn)) {
-			return FALCON_ERR_SIZE;
+	case Frodo_SIG_CT:
+		if (*sig_len < Frodo_SIG_CT_SIZE(logn)) {
+			return Frodo_ERR_SIZE;
 		}
 		break;
 	default:
-		return FALCON_ERR_BADARG;
+		return Frodo_ERR_BADARG;
 	}
 
 	/*
@@ -398,26 +398,26 @@ falcon_sign_dyn_finish(shake256_context *rng,
 	v = Zf(trim_i8_decode)(f, logn, Zf(max_fg_bits)[logn],
 		sk + u, privkey_len - u);
 	if (v == 0) {
-		return FALCON_ERR_FORMAT;
+		return Frodo_ERR_FORMAT;
 	}
 	u += v;
 	v = Zf(trim_i8_decode)(g, logn, Zf(max_fg_bits)[logn],
 		sk + u, privkey_len - u);
 	if (v == 0) {
-		return FALCON_ERR_FORMAT;
+		return Frodo_ERR_FORMAT;
 	}
 	u += v;
 	v = Zf(trim_i8_decode)(F, logn, Zf(max_FG_bits)[logn],
 		sk + u, privkey_len - u);
 	if (v == 0) {
-		return FALCON_ERR_FORMAT;
+		return Frodo_ERR_FORMAT;
 	}
 	u += v;
 	if (u != privkey_len) {
-		return FALCON_ERR_FORMAT;
+		return Frodo_ERR_FORMAT;
 	}
 	if (!Zf(complete_private)(G, f, g, F, logn, atmp)) {
-		return FALCON_ERR_FORMAT;
+		return Frodo_ERR_FORMAT;
 	}
 
 	/*
@@ -438,7 +438,7 @@ falcon_sign_dyn_finish(shake256_context *rng,
 		 * to save some RAM).
 		 */
 		*(inner_shake256_context *)hash_data = sav_hash_data;
-		if (sig_type == FALCON_SIG_CT) {
+		if (sig_type == Frodo_SIG_CT) {
 			Zf(hash_to_point_ct)(
 				(inner_shake256_context *)hash_data,
 				hm, logn, atmp);
@@ -458,16 +458,16 @@ falcon_sign_dyn_finish(shake256_context *rng,
 		switch (sig_type) {
 			size_t tu;
 
-		case FALCON_SIG_COMPRESSED:
+		case Frodo_SIG_COMPRESSED:
 			es[0] = 0x30 + logn;
 			v = Zf(comp_encode)(es + u, es_len - u, sv, logn);
 			if (v == 0) {
-				return FALCON_ERR_SIZE;
+				return Frodo_ERR_SIZE;
 			}
 			break;
-		case FALCON_SIG_PADDED:
+		case Frodo_SIG_PADDED:
 			es[0] = 0x30 + logn;
-			tu = FALCON_SIG_PADDED_SIZE(logn);
+			tu = Frodo_SIG_PADDED_SIZE(logn);
 			v = Zf(comp_encode)(es + u, tu - u, sv, logn);
 			if (v == 0) {
 				/*
@@ -480,12 +480,12 @@ falcon_sign_dyn_finish(shake256_context *rng,
 				v = tu - u;
 			}
 			break;
-		case FALCON_SIG_CT:
+		case Frodo_SIG_CT:
 			es[0] = 0x50 + logn;
 			v = Zf(trim_i16_encode)(es + u, es_len - u,
 				sv, logn, Zf(max_sig_bits)[logn]);
 			if (v == 0) {
-				return FALCON_ERR_SIZE;
+				return Frodo_ERR_SIZE;
 			}
 			break;
 		}
@@ -494,9 +494,9 @@ falcon_sign_dyn_finish(shake256_context *rng,
 	}
 }
 
-/* see falcon.h */
+/* see Frodo.h */
 int
-falcon_expand_privkey(void *expanded_key, size_t expanded_key_len,
+Frodo_expand_privkey(void *expanded_key, size_t expanded_key_len,
 	const void *privkey, size_t privkey_len,
 	void *tmp, size_t tmp_len)
 {
@@ -513,23 +513,23 @@ falcon_expand_privkey(void *expanded_key, size_t expanded_key_len,
 	 * parameters.
 	 */
 	if (privkey_len == 0) {
-		return FALCON_ERR_FORMAT;
+		return Frodo_ERR_FORMAT;
 	}
 	sk = privkey;
 	if ((sk[0] & 0xF0) != 0x50) {
-		return FALCON_ERR_FORMAT;
+		return Frodo_ERR_FORMAT;
 	}
 	logn = sk[0] & 0x0F;
 	if (logn < 1 || logn > 10) {
-		return FALCON_ERR_FORMAT;
+		return Frodo_ERR_FORMAT;
 	}
-	if (privkey_len != FALCON_PRIVKEY_SIZE(logn)) {
-		return FALCON_ERR_FORMAT;
+	if (privkey_len != Frodo_PRIVKEY_SIZE(logn)) {
+		return Frodo_ERR_FORMAT;
 	}
-	if (expanded_key_len < FALCON_EXPANDEDKEY_SIZE(logn)
-		|| tmp_len < FALCON_TMPSIZE_EXPANDPRIV(logn))
+	if (expanded_key_len < Frodo_EXPANDEDKEY_SIZE(logn)
+		|| tmp_len < Frodo_TMPSIZE_EXPANDPRIV(logn))
 	{
-		return FALCON_ERR_SIZE;
+		return Frodo_ERR_SIZE;
 	}
 
 	/*
@@ -545,26 +545,26 @@ falcon_expand_privkey(void *expanded_key, size_t expanded_key_len,
 	v = Zf(trim_i8_decode)(f, logn, Zf(max_fg_bits)[logn],
 		sk + u, privkey_len - u);
 	if (v == 0) {
-		return FALCON_ERR_FORMAT;
+		return Frodo_ERR_FORMAT;
 	}
 	u += v;
 	v = Zf(trim_i8_decode)(g, logn, Zf(max_fg_bits)[logn],
 		sk + u, privkey_len - u);
 	if (v == 0) {
-		return FALCON_ERR_FORMAT;
+		return Frodo_ERR_FORMAT;
 	}
 	u += v;
 	v = Zf(trim_i8_decode)(F, logn, Zf(max_FG_bits)[logn],
 		sk + u, privkey_len - u);
 	if (v == 0) {
-		return FALCON_ERR_FORMAT;
+		return Frodo_ERR_FORMAT;
 	}
 	u += v;
 	if (u != privkey_len) {
-		return FALCON_ERR_FORMAT;
+		return Frodo_ERR_FORMAT;
 	}
 	if (!Zf(complete_private)(G, f, g, F, logn, atmp)) {
-		return FALCON_ERR_FORMAT;
+		return Frodo_ERR_FORMAT;
 	}
 
 	/*
@@ -578,9 +578,9 @@ falcon_expand_privkey(void *expanded_key, size_t expanded_key_len,
 	return 0;
 }
 
-/* see falcon.h */
+/* see Frodo.h */
 int
-falcon_sign_tree_finish(shake256_context *rng,
+Frodo_sign_tree_finish(shake256_context *rng,
 	void *sig, size_t *sig_len, int sig_type,
 	const void *expanded_key,
 	shake256_context *hash_data, const void *nonce,
@@ -602,31 +602,31 @@ falcon_sign_tree_finish(shake256_context *rng,
 	 */
 	logn = *(const uint8_t *)expanded_key;
 	if (logn < 1 || logn > 10) {
-		return FALCON_ERR_FORMAT;
+		return Frodo_ERR_FORMAT;
 	}
-	if (tmp_len < FALCON_TMPSIZE_SIGNTREE(logn)) {
-		return FALCON_ERR_SIZE;
+	if (tmp_len < Frodo_TMPSIZE_SIGNTREE(logn)) {
+		return Frodo_ERR_SIZE;
 	}
 	es_len = *sig_len;
 	if (es_len < 41) {
-		return FALCON_ERR_SIZE;
+		return Frodo_ERR_SIZE;
 	}
 	expkey = (const fpr *)align_fpr((uint8_t *)expanded_key + 1);
 	switch (sig_type) {
-	case FALCON_SIG_COMPRESSED:
+	case Frodo_SIG_COMPRESSED:
 		break;
-	case FALCON_SIG_PADDED:
-		if (*sig_len < FALCON_SIG_PADDED_SIZE(logn)) {
-			return FALCON_ERR_SIZE;
+	case Frodo_SIG_PADDED:
+		if (*sig_len < Frodo_SIG_PADDED_SIZE(logn)) {
+			return Frodo_ERR_SIZE;
 		}
 		break;
-	case FALCON_SIG_CT:
-		if (*sig_len < FALCON_SIG_CT_SIZE(logn)) {
-			return FALCON_ERR_SIZE;
+	case Frodo_SIG_CT:
+		if (*sig_len < Frodo_SIG_CT_SIZE(logn)) {
+			return Frodo_ERR_SIZE;
 		}
 		break;
 	default:
-		return FALCON_ERR_BADARG;
+		return Frodo_ERR_BADARG;
 	}
 
 	n = (size_t)1 << logn;
@@ -652,7 +652,7 @@ falcon_sign_tree_finish(shake256_context *rng,
 		 * to save some RAM).
 		 */
 		*(inner_shake256_context *)hash_data = sav_hash_data;
-		if (sig_type == FALCON_SIG_CT) {
+		if (sig_type == Frodo_SIG_CT) {
 			Zf(hash_to_point_ct)(
 				(inner_shake256_context *)hash_data,
 				hm, logn, atmp);
@@ -672,16 +672,16 @@ falcon_sign_tree_finish(shake256_context *rng,
 		switch (sig_type) {
 			size_t tu;
 
-		case FALCON_SIG_COMPRESSED:
+		case Frodo_SIG_COMPRESSED:
 			es[0] = 0x30 + logn;
 			v = Zf(comp_encode)(es + u, es_len - u, sv, logn);
 			if (v == 0) {
-				return FALCON_ERR_SIZE;
+				return Frodo_ERR_SIZE;
 			}
 			break;
-		case FALCON_SIG_PADDED:
+		case Frodo_SIG_PADDED:
 			es[0] = 0x30 + logn;
-			tu = FALCON_SIG_PADDED_SIZE(logn);
+			tu = Frodo_SIG_PADDED_SIZE(logn);
 			v = Zf(comp_encode)(es + u, tu - u, sv, logn);
 			if (v == 0) {
 				/*
@@ -694,12 +694,12 @@ falcon_sign_tree_finish(shake256_context *rng,
 				v = tu - u;
 			}
 			break;
-		case FALCON_SIG_CT:
+		case Frodo_SIG_CT:
 			es[0] = 0x50 + logn;
 			v = Zf(trim_i16_encode)(es + u, es_len - u,
 				sv, logn, Zf(max_sig_bits)[logn]);
 			if (v == 0) {
-				return FALCON_ERR_SIZE;
+				return Frodo_ERR_SIZE;
 			}
 			break;
 		}
@@ -708,9 +708,9 @@ falcon_sign_tree_finish(shake256_context *rng,
 	}
 }
 
-/* see falcon.h */
+/* see Frodo.h */
 int
-falcon_sign_dyn(shake256_context *rng,
+Frodo_sign_dyn(shake256_context *rng,
 	void *sig, size_t *sig_len, int sig_type,
 	const void *privkey, size_t privkey_len,
 	const void *data, size_t data_len,
@@ -720,18 +720,18 @@ falcon_sign_dyn(shake256_context *rng,
 	uint8_t nonce[40];
 	int r;
 
-	r = falcon_sign_start(rng, nonce, &hd);
+	r = Frodo_sign_start(rng, nonce, &hd);
 	if (r != 0) {
 		return r;
 	}
 	shake256_inject(&hd, data, data_len);
-	return falcon_sign_dyn_finish(rng, sig, sig_len, sig_type,
+	return Frodo_sign_dyn_finish(rng, sig, sig_len, sig_type,
 		privkey, privkey_len, &hd, nonce, tmp, tmp_len);
 }
 
-/* see falcon.h */
+/* see Frodo.h */
 int
-falcon_sign_tree(shake256_context *rng,
+Frodo_sign_tree(shake256_context *rng,
 	void *sig, size_t *sig_len, int sig_type,
 	const void *expanded_key,
 	const void *data, size_t data_len,
@@ -741,31 +741,31 @@ falcon_sign_tree(shake256_context *rng,
 	uint8_t nonce[40];
 	int r;
 
-	r = falcon_sign_start(rng, nonce, &hd);
+	r = Frodo_sign_start(rng, nonce, &hd);
 	if (r != 0) {
 		return r;
 	}
 	shake256_inject(&hd, data, data_len);
-	return falcon_sign_tree_finish(rng, sig, sig_len, sig_type,
+	return Frodo_sign_tree_finish(rng, sig, sig_len, sig_type,
 		expanded_key, &hd, nonce, tmp, tmp_len);
 }
 
-/* see falcon.h */
+/* see Frodo.h */
 int
-falcon_verify_start(shake256_context *hash_data,
+Frodo_verify_start(shake256_context *hash_data,
 	const void *sig, size_t sig_len)
 {
 	if (sig_len < 41) {
-		return FALCON_ERR_FORMAT;
+		return Frodo_ERR_FORMAT;
 	}
 	shake256_init(hash_data);
 	shake256_inject(hash_data, (const uint8_t *)sig + 1, 40);
 	return 0;
 }
 
-/* see falcon.h */
+/* see Frodo.h */
 int
-falcon_verify_finish(const void *sig, size_t sig_len, int sig_type,
+Frodo_verify_finish(const void *sig, size_t sig_len, int sig_type,
 	const void *pubkey, size_t pubkey_len,
 	shake256_context *hash_data,
 	void *tmp, size_t tmp_len)
@@ -779,23 +779,23 @@ falcon_verify_finish(const void *sig, size_t sig_len, int sig_type,
 	int ct;
 
 	/*
-	 * Get Falcon degree from public key; verify consistency with
+	 * Get Frodo degree from public key; verify consistency with
 	 * signature value, and check parameters.
 	 */
 	if (sig_len < 41 || pubkey_len == 0) {
-		return FALCON_ERR_FORMAT;
+		return Frodo_ERR_FORMAT;
 	}
 	es = sig;
 	pk = pubkey;
 	if ((pk[0] & 0xF0) != 0x00) {
-		return FALCON_ERR_FORMAT;
+		return Frodo_ERR_FORMAT;
 	}
 	logn = pk[0] & 0x0F;
 	if (logn < 1 || logn > 10) {
-		return FALCON_ERR_FORMAT;
+		return Frodo_ERR_FORMAT;
 	}
 	if ((es[0] & 0x0F) != logn) {
-		return FALCON_ERR_BADSIG;
+		return Frodo_ERR_BADSIG;
 	}
 	ct = 0;
 	switch (sig_type) {
@@ -804,45 +804,45 @@ falcon_verify_finish(const void *sig, size_t sig_len, int sig_type,
 		case 0x30:
 			break;
 		case 0x50:
-			if (sig_len != FALCON_SIG_CT_SIZE(logn)) {
-				return FALCON_ERR_FORMAT;
+			if (sig_len != Frodo_SIG_CT_SIZE(logn)) {
+				return Frodo_ERR_FORMAT;
 			}
 			ct = 1;
 			break;
 		default:
-			return FALCON_ERR_BADSIG;
+			return Frodo_ERR_BADSIG;
 		}
 		break;
-	case FALCON_SIG_COMPRESSED:
+	case Frodo_SIG_COMPRESSED:
 		if ((es[0] & 0xF0) != 0x30) {
-			return FALCON_ERR_FORMAT;
+			return Frodo_ERR_FORMAT;
 		}
 		break;
-	case FALCON_SIG_PADDED:
+	case Frodo_SIG_PADDED:
 		if ((es[0] & 0xF0) != 0x30) {
-			return FALCON_ERR_FORMAT;
+			return Frodo_ERR_FORMAT;
 		}
-		if (sig_len != FALCON_SIG_PADDED_SIZE(logn)) {
-			return FALCON_ERR_FORMAT;
+		if (sig_len != Frodo_SIG_PADDED_SIZE(logn)) {
+			return Frodo_ERR_FORMAT;
 		}
 		break;
-	case FALCON_SIG_CT:
+	case Frodo_SIG_CT:
 		if ((es[0] & 0xF0) != 0x50) {
-			return FALCON_ERR_FORMAT;
+			return Frodo_ERR_FORMAT;
 		}
-		if (sig_len != FALCON_SIG_CT_SIZE(logn)) {
-			return FALCON_ERR_FORMAT;
+		if (sig_len != Frodo_SIG_CT_SIZE(logn)) {
+			return Frodo_ERR_FORMAT;
 		}
 		ct = 1;
 		break;
 	default:
-		return FALCON_ERR_BADARG;
+		return Frodo_ERR_BADARG;
 	}
-	if (pubkey_len != FALCON_PUBKEY_SIZE(logn)) {
-		return FALCON_ERR_FORMAT;
+	if (pubkey_len != Frodo_PUBKEY_SIZE(logn)) {
+		return Frodo_ERR_FORMAT;
 	}
-	if (tmp_len < FALCON_TMPSIZE_VERIFY(logn)) {
-		return FALCON_ERR_SIZE;
+	if (tmp_len < Frodo_TMPSIZE_VERIFY(logn)) {
+		return Frodo_ERR_SIZE;
 	}
 
 	n = (size_t)1 << logn;
@@ -857,7 +857,7 @@ falcon_verify_finish(const void *sig, size_t sig_len, int sig_type,
 	if (Zf(modq_decode)(h, logn, pk + 1, pubkey_len - 1)
 		!= pubkey_len - 1)
 	{
-		return FALCON_ERR_FORMAT;
+		return Frodo_ERR_FORMAT;
 	}
 
 	/*
@@ -871,24 +871,24 @@ falcon_verify_finish(const void *sig, size_t sig_len, int sig_type,
 		v = Zf(comp_decode)(sv, logn, es + u, sig_len - u);
 	}
 	if (v == 0) {
-		return FALCON_ERR_FORMAT;
+		return Frodo_ERR_FORMAT;
 	}
 	if ((u + v) != sig_len) {
 		/*
 		 * Extra bytes of value 0 are tolerated only for the
 		 * "padded" format.
 		 */
-		if ((sig_type == 0 && sig_len == FALCON_SIG_PADDED_SIZE(logn))
-			|| sig_type == FALCON_SIG_PADDED)
+		if ((sig_type == 0 && sig_len == Frodo_SIG_PADDED_SIZE(logn))
+			|| sig_type == Frodo_SIG_PADDED)
 		{
 			while (u + v < sig_len) {
 				if (es[u + v] != 0) {
-					return FALCON_ERR_FORMAT;
+					return Frodo_ERR_FORMAT;
 				}
 				v ++;
 			}
 		} else {
-			return FALCON_ERR_FORMAT;
+			return Frodo_ERR_FORMAT;
 		}
 	}
 
@@ -909,14 +909,14 @@ falcon_verify_finish(const void *sig, size_t sig_len, int sig_type,
 	 */
 	Zf(to_ntt_monty)(h, logn);
 	if (!Zf(verify_raw)(hm, sv, h, logn, atmp)) {
-		return FALCON_ERR_BADSIG;
+		return Frodo_ERR_BADSIG;
 	}
 	return 0;
 }
 
-/* see falcon.h */
+/* see Frodo.h */
 int
-falcon_verify(const void *sig, size_t sig_len, int sig_type,
+Frodo_verify(const void *sig, size_t sig_len, int sig_type,
 	const void *pubkey, size_t pubkey_len,
 	const void *data, size_t data_len,
 	void *tmp, size_t tmp_len)
@@ -924,11 +924,11 @@ falcon_verify(const void *sig, size_t sig_len, int sig_type,
 	shake256_context hd;
 	int r;
 
-	r = falcon_verify_start(&hd, sig, sig_len);
+	r = Frodo_verify_start(&hd, sig, sig_len);
 	if (r < 0) {
 		return r;
 	}
 	shake256_inject(&hd, data, data_len);
-	return falcon_verify_finish(sig, sig_len, sig_type,
+	return Frodo_verify_finish(sig, sig_len, sig_type,
 		pubkey, pubkey_len, &hd, tmp, tmp_len);
 }

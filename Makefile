@@ -66,7 +66,7 @@ objs/frodo640.o: frodo640.c
 	@mkdir -p $(@D)
 	$(CC) -c  $(CFLAGS) $< -o $@
 
-objs/falcon.o: falcon.c
+objs/Frodo.o: Frodo.c
 	@mkdir -p $(@D)
 	$(CC) -c  $(CFLAGS) $< -o $@
 	
@@ -91,8 +91,8 @@ objs/random/random.o: random/random.h
 RAND_OBJS := objs/random/random.o
 
 # KEM_FRODO
-KEM_FRODO640_OBJS := $(addprefix objs/, frodo640.o sign.o rng_2.o shake.o util.o falcon.o fpr.o)
-KEM_FRODO640_HEADERS := api.h config.h frodo_macrify.h inner.h falcon.h fpr.h
+KEM_FRODO640_OBJS := $(addprefix objs/, frodo640.o sign.o rng_2.o shake.o util.o Frodo.o fpr.o)
+KEM_FRODO640_HEADERS := api.h config.h frodo_macrify.h inner.h Frodo.h fpr.h
 $(KEM_FRODO640_OBJS): $(KEM_FRODO640_HEADERS)
 
 # AES
