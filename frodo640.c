@@ -28,6 +28,13 @@
 uint16_t CDF_TABLE[13] = {4643, 13363, 20579, 25843, 29227, 31145, 32103, 32525, 32689, 32745, 32762, 32766, 32767};
 uint16_t CDF_TABLE_LEN = 13;
 
+
+//CDF Table by Soundes
+uint16_t CDF_TABLE_NEW[6] = {9337, 23807, 30539, 32419, 32734, 32766   };
+uint16_t CDF_TABLE_LEN_NEW=6;
+
 #include "kem.c"
 #include "noise.c"
-#include "frodo_macrify_reference.c"
+#include "frodo_macrify_reference.c"      
+ 
+  

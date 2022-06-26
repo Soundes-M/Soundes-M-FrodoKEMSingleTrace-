@@ -6,38 +6,48 @@
 
 #include "sha3/fips202.h"
 #include <assert.h>
+#include <math.h>
 
 //include files to call the new Gaussian sampler
 #include "inner.h"
 #include "Frodo.h"
 
+ 
 /*
-NON-AVX
+NON-AVX*/
 void frodo_sample_n(uint16_t *s, const size_t n) 
 { // Fills vector s with n samples from the noise distribution which requires 16 bits to sample. 
   // The distribution is specified by its CDF.
   // Input: pseudo-random values (2*n bytes) passed in s. The input is overwritten by the output.
     unsigned int i, j;
- 
+    printf("Start \n \n");
     for (i = 0; i < n; ++i) {
         uint16_t sample = 0;
         uint16_t prnd = s[i] >> 1;    // Drop the least significant bit
         uint16_t sign = s[i] & 0x1;    // Pick the least significant bit
 
-        // No need to compare with the last value.
-        for (j = 0; j < (unsigned int)(CDF_TABLE_LEN - 1); j++) {
+       // No need to compare with the last value.
+rej:   sample = 0;
+       for (j = 0; j < (unsigned int)(CDF_TABLE_LEN_NEW - 1); j++) {
             // Constant time comparison: 1 if CDF_TABLE[j] < s, 0 otherwise. Uses the fact that CDF_TABLE[j] and s fit in 15 bits.
-            sample += (uint16_t)(CDF_TABLE[j] - prnd) >> 15;
+            sample += (uint16_t)(CDF_TABLE_NEW[j] - prnd) >> 15;
         }
         // Assuming that sign is either 0 or 1, flips sample iff sign = 1
-         
-        s[i] = ((-sign) ^ sample) + sign; 
-       
+         int y = rand()%3;
+         int Bexp = exp((-y *(y+2*2*sample))/2*2.75*2.75);
+         if (Bexp==0) goto rej;
+         sample = y + 2* sample;
+         // assign the sign
+         s[i] = ((-sign) ^ sample) + sign; 
+    
+        printf("%ld , ", s[i]);
     }
+    
+    
 }
-*/
+ 
 
-void frodo_sample_n(uint16_t *s, const size_t n)  
+void frodo_sample_nn(uint16_t *s, const size_t n)  
 {
         inner_shake256_context rng;
 	sampler_context sc;
@@ -49,10 +59,13 @@ void frodo_sample_n(uint16_t *s, const size_t n)
 	Zf(prng_init)(&sc.p, &rng);
 	sc.sigma_min = fpr_sigma_min[9];
 
-	isigma = fpr_div(fpr_of(10), fpr_of(28));// sigma is 2.8 for Frodo640
+	isigma = fpr_div(fpr_of(10), fpr_of(23));// sigma is 2.8 for Frodo640
 	mu = fpr_neg(fpr_one);
+	printf("Start \n \n");
 	for(int i=0;i<n;i++) 
-		s[i] = Zf(sampler)(&sc, mu, isigma); 
+	{	s[i] = Zf(sampler)(&sc, mu, isigma); 
+	        printf("%ld, ", s[i]);
 	
+	}
 	 
 }

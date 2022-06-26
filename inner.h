@@ -1,14 +1,14 @@
-#ifndef FALCON_INNER_H__
-#define FALCON_INNER_H__
+#ifndef Frodo_INNER_H__
+#define Frodo_INNER_H__
 
 /*
- * Internal functions for Falcon. This is not the API intended to be
+ * Internal functions for Frodo. This is not the API intended to be
  * used by applications; instead, this internal API provides all the
  * primitives on which wrappers build to provide external APIs.
  *
  * ==========================(LICENSE BEGIN)============================
  *
- * Copyright (c) 2017-2019  Falcon Project
+ * Copyright (c) 2017-2019  Frodo Project
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -44,7 +44,7 @@
  *  - All public functions (i.e. the non-static ones) must be referenced
  *    with the Zf() macro (e.g. Zf(verify_raw) for the verify_raw()
  *    function). That macro adds a prefix to the name, which is
- *    configurable with the FALCON_PREFIX macro. This allows compiling
+ *    configurable with the Frodo_PREFIX macro. This allows compiling
  *    the code into a specific "namespace" and potentially including
  *    several versions of this code into a single application (e.g. to
  *    have an AVX2 and a non-AVX2 variants and select the one to use at
@@ -83,19 +83,19 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined FALCON_AVX2 && FALCON_AVX2 // yyyAVX2+1
+#if defined Frodo_AVX2 && Frodo_AVX2 // yyyAVX2+1
 /*
  * This implementation uses AVX2 and optionally FMA intrinsics.
  */
 #include <immintrin.h>
-#ifndef FALCON_LE
-#define FALCON_LE   1
+#ifndef Frodo_LE
+#define Frodo_LE   1
 #endif
-#ifndef FALCON_UNALIGNED
-#define FALCON_UNALIGNED   1
+#ifndef Frodo_UNALIGNED
+#define Frodo_UNALIGNED   1
 #endif
 #if defined __GNUC__
-#if defined FALCON_FMA && FALCON_FMA
+#if defined Frodo_FMA && Frodo_FMA
 #define TARGET_AVX2   __attribute__((target("avx2,fma")))
 #else
 #define TARGET_AVX2   __attribute__((target("avx2")))
@@ -103,7 +103,7 @@
 #elif defined _MSC_VER && _MSC_VER
 #pragma warning( disable : 4752 )
 #endif
-#if defined FALCON_FMA && FALCON_FMA
+#if defined Frodo_FMA && Frodo_FMA
 #define FMADD(a, b, c)   _mm256_fmadd_pd(a, b, c)
 #define FMSUB(a, b, c)   _mm256_fmsub_pd(a, b, c)
 #else
@@ -126,12 +126,12 @@
 /*
  * Enable ARM assembly on any ARMv7m platform (if it was not done before).
  */
-#ifndef FALCON_ASM_CORTEXM4
+#ifndef Frodo_ASM_CORTEXM4
 #if (defined __ARM_ARCH_7EM__ && __ARM_ARCH_7EM__) \
 	&& (defined __ARM_FEATURE_DSP && __ARM_FEATURE_DSP)
-#define FALCON_ASM_CORTEXM4   1
+#define Frodo_ASM_CORTEXM4   1
 #else
-#define FALCON_ASM_CORTEXM4   0
+#define Frodo_ASM_CORTEXM4   0
 #endif
 #endif
 // yyySUPERCOP-
@@ -141,84 +141,84 @@
 	(defined _ARCH_PWR8 && \
 		(defined __LITTLE_ENDIAN || defined __LITTLE_ENDIAN__))
 
-#ifndef FALCON_LE
-#define FALCON_LE     1
+#ifndef Frodo_LE
+#define Frodo_LE     1
 #endif
-#ifndef FALCON_UNALIGNED
-#define FALCON_UNALIGNED   1
+#ifndef Frodo_UNALIGNED
+#define Frodo_UNALIGNED   1
 #endif
 
-#elif defined FALCON_ASM_CORTEXM4 && FALCON_ASM_CORTEXM4
+#elif defined Frodo_ASM_CORTEXM4 && Frodo_ASM_CORTEXM4
 
-#ifndef FALCON_LE
-#define FALCON_LE     1
+#ifndef Frodo_LE
+#define Frodo_LE     1
 #endif
-#ifndef FALCON_UNALIGNED
-#define FALCON_UNALIGNED   0
+#ifndef Frodo_UNALIGNED
+#define Frodo_UNALIGNED   0
 #endif
 
 #elif (defined __LITTLE_ENDIAN__ && __LITTLE_ENDIAN__) \
 	|| (defined __BYTE_ORDER__ && defined __ORDER_LITTLE_ENDIAN__ \
 		&& __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
 
-#ifndef FALCON_LE
-#define FALCON_LE     1
+#ifndef Frodo_LE
+#define Frodo_LE     1
 #endif
-#ifndef FALCON_UNALIGNED
-#define FALCON_UNALIGNED   0
+#ifndef Frodo_UNALIGNED
+#define Frodo_UNALIGNED   0
 #endif
 
 #else
 
-#ifndef FALCON_LE
-#define FALCON_LE     0
+#ifndef Frodo_LE
+#define Frodo_LE     0
 #endif
-#ifndef FALCON_UNALIGNED
-#define FALCON_UNALIGNED   0
+#ifndef Frodo_UNALIGNED
+#define Frodo_UNALIGNED   0
 #endif
 
 #endif
 
 /*
- * We ensure that both FALCON_FPEMU and FALCON_FPNATIVE are defined,
+ * We ensure that both Frodo_FPEMU and Frodo_FPNATIVE are defined,
  * with compatible values (exactly one of them must be non-zero).
  * If none is defined, then default FP implementation is 'native'
  * except on ARM Cortex M4.
  */
-#if !defined FALCON_FPEMU && !defined FALCON_FPNATIVE
+#if !defined Frodo_FPEMU && !defined Frodo_FPNATIVE
 
 #if (defined __ARM_FP && ((__ARM_FP & 0x08) == 0x08)) \
 	|| (!defined __ARM_FP && defined __ARM_VFPV2__)
-#define FALCON_FPEMU      0
-#define FALCON_FPNATIVE   1
-#elif defined FALCON_ASM_CORTEXM4 && FALCON_ASM_CORTEXM4
-#define FALCON_FPEMU      1
-#define FALCON_FPNATIVE   0
+#define Frodo_FPEMU      0
+#define Frodo_FPNATIVE   1
+#elif defined Frodo_ASM_CORTEXM4 && Frodo_ASM_CORTEXM4
+#define Frodo_FPEMU      1
+#define Frodo_FPNATIVE   0
 #else
-#define FALCON_FPEMU      0
-#define FALCON_FPNATIVE   1
+#define Frodo_FPEMU      0
+#define Frodo_FPNATIVE   1
 #endif
 
-#elif defined FALCON_FPEMU && !defined FALCON_FPNATIVE
+#elif defined Frodo_FPEMU && !defined Frodo_FPNATIVE
 
-#if FALCON_FPEMU
-#define FALCON_FPNATIVE   0
+#if Frodo_FPEMU
+#define Frodo_FPNATIVE   0
 #else
-#define FALCON_FPNATIVE   1
+#define Frodo_FPNATIVE   1
 #endif
 
-#elif defined FALCON_FPNATIVE && !defined FALCON_FPEMU
+#elif defined Frodo_FPNATIVE && !defined Frodo_FPEMU
 
-#if FALCON_FPNATIVE
-#define FALCON_FPEMU   0
+#if Frodo_FPNATIVE
+#define Frodo_FPEMU   0
 #else
-#define FALCON_FPEMU   1
+#define Frodo_FPEMU   1
 #endif
 
 #endif
 
-#if (FALCON_FPEMU && FALCON_FPNATIVE) || (!FALCON_FPEMU && !FALCON_FPNATIVE)
-#error Exactly one of FALCON_FPEMU and FALCON_FPNATIVE must be selected
+#if (Frodo_FPEMU && Frodo_FPNATIVE) || (!Frodo_FPEMU && !Frodo_FPNATIVE)
+#error Exactly one of Frodo_FPEMU and Frodo_FPNATIVE must be selected
 #endif
 
 // yyySUPERCOP+0
@@ -230,18 +230,18 @@
  *  - On Windows, use CryptGenRandom().
  */
 
-#ifndef FALCON_RAND_GETENTROPY
+#ifndef Frodo_RAND_GETENTROPY
 #if (defined __linux__ && defined __GLIBC__ \
 	&& (__GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 25))) \
 	|| (defined __FreeBSD__ && __FreeBSD__ >= 12) \
 	|| defined __OpenBSD__
-#define FALCON_RAND_GETENTROPY   1
+#define Frodo_RAND_GETENTROPY   1
 #else
-#define FALCON_RAND_GETENTROPY   0
+#define Frodo_RAND_GETENTROPY   0
 #endif
 #endif
 
-#ifndef FALCON_RAND_URANDOM
+#ifndef Frodo_RAND_URANDOM
 #if defined _AIX \
 	|| defined __ANDROID__ \
 	|| defined __FreeBSD__ \
@@ -251,17 +251,17 @@
 	|| defined __linux__ \
 	|| (defined __sun && (defined __SVR4 || defined __svr4__)) \
 	|| (defined __APPLE__ && defined __MACH__)
-#define FALCON_RAND_URANDOM   1
+#define Frodo_RAND_URANDOM   1
 #else
-#define FALCON_RAND_URANDOM   0
+#define Frodo_RAND_URANDOM   0
 #endif
 #endif
 
-#ifndef FALCON_RAND_WIN32
+#ifndef Frodo_RAND_WIN32
 #if defined _WIN32 || defined _WIN64
-#define FALCON_RAND_WIN32   1
+#define Frodo_RAND_WIN32   1
 #else
-#define FALCON_RAND_WIN32   0
+#define Frodo_RAND_WIN32   0
 #endif
 #endif
 // yyySUPERCOP-
@@ -270,14 +270,14 @@
  * For still undefined compile-time macros, define them to 0 to avoid
  * warnings with -Wundef.
  */
-#ifndef FALCON_AVX2
-#define FALCON_AVX2   0
+#ifndef Frodo_AVX2
+#define Frodo_AVX2   0
 #endif
-#ifndef FALCON_FMA
-#define FALCON_FMA   0
+#ifndef Frodo_FMA
+#define Frodo_FMA   0
 #endif
-#ifndef FALCON_KG_CHACHA20
-#define FALCON_KG_CHACHA20   0
+#ifndef Frodo_KG_CHACHA20
+#define Frodo_KG_CHACHA20   0
 #endif
 // yyyNIST- yyyPQCLEAN-
 
@@ -286,10 +286,10 @@
  * "Naming" macro used to apply a consistent prefix over all global
  * symbols.
  */
-#ifndef FALCON_PREFIX
-#define FALCON_PREFIX   falcon_inner
+#ifndef Frodo_PREFIX
+#define Frodo_PREFIX   Frodo_inner
 #endif
-#define Zf(name)             Zf_(FALCON_PREFIX, name)
+#define Zf(name)             Zf_(Frodo_PREFIX, name)
 #define Zf_(prefix, name)    Zf__(prefix, name)
 #define Zf__(prefix, name)   prefix ## _ ## name  
 // yyyPQCLEAN- yyySUPERCOP-
@@ -322,7 +322,7 @@
  * targets other than 32-bit x86, or when the native 'double' type is
  * not used, the set_fpu_cw() function does nothing at all.
  */
-#if FALCON_FPNATIVE  // yyyFPNATIVE+1
+#if Frodo_FPNATIVE  // yyyFPNATIVE+1
 #if defined __GNUC__ && defined __i386__
 static inline unsigned
 set_fpu_cw(unsigned x)
@@ -364,7 +364,7 @@ set_fpu_cw(unsigned x)
 }
 #endif  // yyyFPNATIVE-
 
-#if FALCON_FPNATIVE && !FALCON_AVX2  // yyyFPNATIVE+1 yyyAVX2+0
+#if Frodo_FPNATIVE && !Frodo_AVX2  // yyyFPNATIVE+1 yyyAVX2+0
 /*
  * If using the native 'double' type but not AVX2 code, on an x86
  * machine with SSE2 activated for maths, then we will use the
@@ -375,7 +375,7 @@ set_fpu_cw(unsigned x)
 #endif
 #endif  // yyyFPNATIVE- yyyAVX2-
 
-#if FALCON_FPNATIVE  // yyyFPNATIVE+1
+#if Frodo_FPNATIVE  // yyyFPNATIVE+1
 /*
  * For optimal reproducibility of values, we need to disable contraction
  * of floating-point expressions; otherwise, on some architectures (e.g.
@@ -841,7 +841,7 @@ prng_get_u64(prng *p)
 	 * On systems that use little-endian encoding and allow
 	 * unaligned accesses, we can simply read the data where it is.
 	 */
-#if FALCON_LE && FALCON_UNALIGNED  // yyyLEU+1
+#if Frodo_LE && Frodo_UNALIGNED  // yyyLEU+1
 	return *(uint64_t *)(p->buf.d + u);
 #else  // yyyLEU+0
 	return (uint64_t)p->buf.d[u + 0]
@@ -872,12 +872,12 @@ prng_get_u8(prng *p)
 
 /* ==================================================================== */
 /*
- * FFT (falcon-fft.c).
+ * FFT (Frodo-fft.c).
  *
  * A real polynomial is represented as an array of N 'fpr' elements.
  * The FFT representation of a real polynomial contains N/2 complex
  * elements; each is stored as two real numbers, for the real and
- * imaginary parts, respectively. See falcon-fft.c for details on the
+ * imaginary parts, respectively. See Frodo-fft.c for details on the
  * internal representation.
  */
 
@@ -1041,21 +1041,21 @@ void Zf(poly_merge_fft)(fpr *restrict f,
  * This size is 28*2^logn bytes, except for degrees 2 and 4 (logn = 1
  * or 2) where it is slightly greater.
  */
-#define FALCON_KEYGEN_TEMP_1      136
-#define FALCON_KEYGEN_TEMP_2      272
-#define FALCON_KEYGEN_TEMP_3      224
-#define FALCON_KEYGEN_TEMP_4      448
-#define FALCON_KEYGEN_TEMP_5      896
-#define FALCON_KEYGEN_TEMP_6     1792
-#define FALCON_KEYGEN_TEMP_7     3584
-#define FALCON_KEYGEN_TEMP_8     7168
-#define FALCON_KEYGEN_TEMP_9    14336
-#define FALCON_KEYGEN_TEMP_10   28672
+#define Frodo_KEYGEN_TEMP_1      136
+#define Frodo_KEYGEN_TEMP_2      272
+#define Frodo_KEYGEN_TEMP_3      224
+#define Frodo_KEYGEN_TEMP_4      448
+#define Frodo_KEYGEN_TEMP_5      896
+#define Frodo_KEYGEN_TEMP_6     1792
+#define Frodo_KEYGEN_TEMP_7     3584
+#define Frodo_KEYGEN_TEMP_8     7168
+#define Frodo_KEYGEN_TEMP_9    14336
+#define Frodo_KEYGEN_TEMP_10   28672
 
 /*
  * Generate a new key pair. Randomness is extracted from the provided
  * SHAKE256 context, which must have already been seeded and flipped.
- * The tmp[] array must have suitable size (see FALCON_KEYGEN_TEMP_*
+ * The tmp[] array must have suitable size (see Frodo_KEYGEN_TEMP_*
  * macros) and be aligned for the uint32_t, uint64_t and fpr types.
  *
  * The private key elements are written in f, g, F and G, and the

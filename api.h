@@ -16,13 +16,9 @@
 // Algorithm name
 #define CRYPTO_ALGNAME "FrodoKEM-640"       
  
-#include "inttypes.h" 
-#include"dudect.h"
+#include "inttypes.h"  
 int crypto_kem_keypair(unsigned char *pk, unsigned char *sk);
 int crypto_kem_enc(unsigned char *ct, unsigned char *ss, const unsigned char *pk);
 int crypto_kem_dec(unsigned char *ss, const unsigned char *ct, const unsigned char *sk);
 
-#endif
-int run_test();  
-void prepare_inputs(dudect_config_t *c, uint8_t *input_data, uint8_t *classes);
-uint8_t do_one_computation(uint8_t *data);
+#endif 

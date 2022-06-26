@@ -85,14 +85,18 @@ objs/shake.o: shake.c
 objs/rng_2.o: rng_2.c
 	@mkdir -p $(@D)
 	$(CC) -c  $(CFLAGS) $< -o $@	
+
+objs/fastrandombytes.o: fastrandombytes.c
+	@mkdir -p $(@D)
+	$(CC) -c  $(CFLAGS) $< -o $@
 	
 # RAND
 objs/random/random.o: random/random.h
 RAND_OBJS := objs/random/random.o
 
 # KEM_FRODO
-KEM_FRODO640_OBJS := $(addprefix objs/, frodo640.o sign.o rng_2.o shake.o util.o Frodo.o fpr.o)
-KEM_FRODO640_HEADERS := api.h config.h frodo_macrify.h inner.h Frodo.h fpr.h
+KEM_FRODO640_OBJS := $(addprefix objs/, frodo640.o sign.o rng_2.o fastrandombytes.o shake.o util.o Frodo.o fpr.o)
+KEM_FRODO640_HEADERS := api.h config.h frodo_macrify.h inner.h Frodo.h fpr.h fastrandombytes.h
 $(KEM_FRODO640_OBJS): $(KEM_FRODO640_HEADERS)
 
 # AES

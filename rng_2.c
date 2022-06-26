@@ -1,34 +1,3 @@
-/*
- * PRNG and interface to the system RNG.
- *
- * ==========================(LICENSE BEGIN)============================
- *
- * Copyright (c) 2017-2019  Falcon Project
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- * ===========================(LICENSE END)=============================
- *
- * @author   Thomas Pornin <thomas.pornin@nccgroup.com>
- */
-
 #include <assert.h>
 
 #include "inner.h"
@@ -38,18 +7,18 @@
  * Include relevant system header files. For Win32, this will also need
  * linking with advapi32.dll, which we trigger with an appropriate #pragma.
  */
-#if FALCON_RAND_GETENTROPY
+#if Frodo_RAND_GETENTROPY
 #include <unistd.h>
 #endif
-#if FALCON_RAND_URANDOM
+#if Frodo_RAND_URANDOM
 #include <sys/types.h>
-#if !FALCON_RAND_GETENTROPY
+#if !Frodo_RAND_GETENTROPY
 #include <unistd.h>
 #endif
 #include <fcntl.h>
 #include <errno.h>
 #endif
-#if FALCON_RAND_WIN32
+#if Frodo_RAND_WIN32
 #include <windows.h>
 #include <wincrypt.h>
 #pragma comment(lib, "advapi32")
@@ -63,12 +32,12 @@ Zf(get_seed)(void *seed, size_t len)
 	if (len == 0) {
 		return 1;
 	}
-#if FALCON_RAND_GETENTROPY
+#if Frodo_RAND_GETENTROPY
 	if (getentropy(seed, len) == 0) {
 		return 1;
 	}
 #endif
-#if FALCON_RAND_URANDOM
+#if Frodo_RAND_URANDOM
 	{
 		int f;
 
@@ -94,7 +63,7 @@ Zf(get_seed)(void *seed, size_t len)
 		}
 	}
 #endif
-#if FALCON_RAND_WIN32
+#if Frodo_RAND_WIN32
 	{
 		HCRYPTPROV hp;
 
@@ -119,7 +88,7 @@ Zf(get_seed)(void *seed, size_t len)
 void
 Zf(prng_init)(prng *p, inner_shake256_context *src)
 {
-#if FALCON_LE  // yyyLE+1
+#if Frodo_LE  // yyyLE+1
 	inner_shake256_extract(src, p->state.d, 56);
 #else  // yyyLE+0
 	/*
@@ -166,7 +135,7 @@ TARGET_AVX2
 void
 Zf(prng_refill)(prng *p)
 {
-#if FALCON_AVX2 // yyyAVX2+1
+#if Frodo_AVX2 // yyyAVX2+1
 
 	static const uint32_t CW[] = {
 		0x61707865, 0x3320646e, 0x79622d32, 0x6b206574
@@ -333,7 +302,7 @@ Zf(prng_refill)(prng *p)
 		 * implementation.
 		 */
 		for (v = 0; v < 16; v ++) {
-#if FALCON_LE  // yyyLE+1
+#if Frodo_LE  // yyyLE+1
 			((uint32_t *)p->buf.d)[u + (v << 3)] = state[v];
 #else  // yyyLE+0
 			p->buf.d[(u << 2) + (v << 5) + 0] =

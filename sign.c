@@ -1,34 +1,3 @@
-/*
- * Falcon signature generation.
- *
- * ==========================(LICENSE BEGIN)============================
- *
- * Copyright (c) 2017-2019  Falcon Project
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- * ===========================(LICENSE END)=============================
- *
- * @author   Thomas Pornin <thomas.pornin@nccgroup.com>
- */
-
 #include "inner.h"
 
 /* =================================================================== */
@@ -37,87 +6,8 @@
  * Compute degree N from logarithm 'logn'.
  */
 #define MKN(logn)   ((size_t)1 << (logn))
-
-/* =================================================================== */
-/*
- * Binary case:
- *   N = 2^logn
- *   phi = X^N+1
- */
-
-/*
- * Get the size of the LDL tree for an input with polynomials of size
- * 2^logn. The size is expressed in the number of elements.
- */
-static inline unsigned
-ffLDL_treesize(unsigned logn)
-{
-	/*
-	 * For logn = 0 (polynomials are constant), the "tree" is a
-	 * single element. Otherwise, the tree node has size 2^logn, and
-	 * has two child trees for size logn-1 each. Thus, treesize s()
-	 * must fulfill these two relations:
-	 *
-	 *   s(0) = 1
-	 *   s(logn) = (2^logn) + 2*s(logn-1)
-	 */
-	return (logn + 1) << logn;
-}
  
  
-/* =================================================================== */
-
-/*
- * Convert an integer polynomial (with small values) into the
- * representation with complex numbers.
- */
-static void
-smallints_to_fpr(fpr *r, const int8_t *t, unsigned logn)
-{
-	size_t n, u;
-
-	n = MKN(logn);
-	for (u = 0; u < n; u ++) {
-		r[u] = fpr_of(t[u]);
-	}
-}
-
-/*
- * The expanded private key contains:
- *  - The B0 matrix (four elements)
- *  - The ffLDL tree
- */
-
-static inline size_t
-skoff_b00(unsigned logn)
-{
-	(void)logn;
-	return 0;
-}
-
-static inline size_t
-skoff_b01(unsigned logn)
-{
-	return MKN(logn);
-}
-
-static inline size_t
-skoff_b10(unsigned logn)
-{
-	return 2 * MKN(logn);
-}
-
-static inline size_t
-skoff_b11(unsigned logn)
-{
-	return 3 * MKN(logn);
-}
-
-static inline size_t
-skoff_tree(unsigned logn)
-{
-	return 4 * MKN(logn);
-} 
 typedef int (*samplerZ)(void *ctx, fpr mu, fpr sigma);
 
 /*
@@ -135,7 +25,7 @@ TARGET_AVX2
 int
 Zf(gaussian0_sampler)(prng *p)
 {
-#if FALCON_AVX2 // yyyAVX2+1
+#if Frodo_AVX2 // yyyAVX2+1
 
 	/*
 	 * High words.
@@ -391,7 +281,7 @@ BerExp(prng *p, fpr x, fpr ccs)
  * provided parameter isigma is equal to 1/sigma.
  *
  * The value of sigma MUST lie between 1 and 2 (i.e. isigma lies between
- * 0.5 and 1); in Falcon, sigma should always be between 1.2 and 1.9.
+ * 0.5 and 1); in Frodo, sigma should always be between 1.2 and 1.9.
  */
 TARGET_AVX2
 int

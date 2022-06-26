@@ -6,7 +6,7 @@
  *
  * ==========================(LICENSE BEGIN)============================
  *
- * Copyright (c) 2017-2019  Falcon Project
+ * Copyright (c) 2017-2019  Frodo Project
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -34,7 +34,7 @@
 
 #include "inner.h"
 
-#if FALCON_FPEMU // yyyFPEMU+1
+#if Frodo_FPEMU // yyyFPEMU+1
 
 /*
  * Normalize a provided unsigned integer to the 2^63..2^64-1 range by
@@ -78,7 +78,7 @@
 		(e) += (int)(nt); \
 	} while (0)
 
-#if FALCON_ASM_CORTEXM4 // yyyASM_CORTEXM4+1
+#if Frodo_ASM_CORTEXM4 // yyyASM_CORTEXM4+1
 
 __attribute__((naked))
 fpr
@@ -230,7 +230,7 @@ fpr_scaled(int64_t i, int sc)
 
 #endif // yyyASM_CORTEXM4-
 
-#if FALCON_ASM_CORTEXM4 // yyyASM_CORTEXM4+1
+#if Frodo_ASM_CORTEXM4 // yyyASM_CORTEXM4+1
 
 // yyyPQCLEAN+0
 #if 0
@@ -580,7 +580,7 @@ fpr_add(fpr x, fpr y)
 
 #endif // yyyASM_CORTEXM4-
 
-#if FALCON_ASM_CORTEXM4 // yyyASM_CORTEXM4+1
+#if Frodo_ASM_CORTEXM4 // yyyASM_CORTEXM4+1
 
 __attribute__((naked))
 fpr
@@ -800,7 +800,7 @@ fpr_mul(fpr x, fpr y)
 
 #endif // yyyASM_CORTEXM4-
 
-#if FALCON_ASM_CORTEXM4 // yyyASM_CORTEXM4+1
+#if Frodo_ASM_CORTEXM4 // yyyASM_CORTEXM4+1
 
 __attribute__((naked))
 fpr
@@ -1026,7 +1026,7 @@ fpr_div(fpr x, fpr y)
 
 #endif // yyyASM_CORTEXM4-
 
-#if FALCON_ASM_CORTEXM4 // yyyASM_CORTEXM4+1
+#if Frodo_ASM_CORTEXM4 // yyyASM_CORTEXM4+1
 
 __attribute__((naked))
 fpr
@@ -2410,7 +2410,7 @@ const fpr fpr_p2_tab[] = {
 	4566650022153682944U
 };
 
-#elif FALCON_FPNATIVE // yyyFPEMU+0 yyyFPNATIVE+1
+#elif Frodo_FPNATIVE // yyyFPEMU+0 yyyFPNATIVE+1
 
 const fpr fpr_gm_tab[] = {
 	{0}, {0}, /* unused */

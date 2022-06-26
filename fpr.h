@@ -3,7 +3,7 @@
  *
  * ==========================(LICENSE BEGIN)============================
  *
- * Copyright (c) 2017-2019  Falcon Project
+ * Copyright (c) 2017-2019  Frodo Project
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -29,7 +29,7 @@
  * @author   Thomas Pornin <thomas.pornin@nccgroup.com>
  */
 
-#if FALCON_FPEMU  // yyyFPEMU+1 yyyFPNATIVE+0
+#if Frodo_FPEMU  // yyyFPEMU+1 yyyFPNATIVE+0
 
 /* ====================================================================== */
 /*
@@ -495,7 +495,7 @@ extern const fpr fpr_p2_tab[];
 
 /* ====================================================================== */
 
-#elif FALCON_FPNATIVE  // yyyFPEMU+0 yyyFPNATIVE+1
+#elif Frodo_FPNATIVE  // yyyFPEMU+0 yyyFPNATIVE+1
 
 /* ====================================================================== */
 
@@ -708,7 +708,7 @@ fpr_div(fpr x, fpr y)
 	return FPR(x.v / y.v);
 }
 
-#if FALCON_AVX2  // yyyAVX2+1
+#if Frodo_AVX2  // yyyAVX2+1
 TARGET_AVX2
 static inline void
 fpr_sqrt_avx2(double *t)
@@ -754,11 +754,11 @@ fpr_sqrt(fpr x)
 	 * library function sqrt() is performed. On some compilers, this
 	 * may actually inline the relevant opcode, and call the library
 	 * function only when the input is invalid (e.g. negative);
-	 * Falcon never actually calls sqrt() on a negative value, but
+	 * Frodo never actually calls sqrt() on a negative value, but
 	 * the dependency to libm will still be there.
 	 */
 
-#if FALCON_AVX2  // yyyAVX2+1
+#if Frodo_AVX2  // yyyAVX2+1
 	fpr_sqrt_avx2(&x.v);
 	return x;
 #else  // yyyAVX2+0
@@ -837,7 +837,7 @@ fpr_expm_p63(fpr x, fpr ccs)
 	 * 2^(-50) from the true mathematical value.
 	 */
 
-#if FALCON_AVX2  // yyyAVX2+1
+#if Frodo_AVX2  // yyyAVX2+1
 
 	/*
 	 * AVX2 implementation uses more operations than Horner's method,
