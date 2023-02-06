@@ -22,14 +22,11 @@ To run the power analysis, run:
 cd chipwhisperer/
 ```
 
-Then:
+Then, copy Sp.txt and Epp.txt into chipwhisperer/jupyter. After that, go to chipwhisperer/jupyter, and run:
+
 ```
 jupyter notebook
 ```
 
 then go to the folder jupyter and open the file Attack on FrodoKEM (PA).ipynb
 and excute it.
-The code is commented, 
-If wou use an STM32F4 victim board, you will be able to build a classifier -which- based on the power consumption trace can detect the Gaussian samples.
-
-In case you are using an STM32F3 board, the samples can be detected with naked eye from the traces.
