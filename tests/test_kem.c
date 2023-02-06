@@ -5,9 +5,8 @@
 *********************************************************************************************/
  
 
-#define KEM_TEST_ITERATIONS 1
+#define KEM_TEST_ITERATIONS 1 
 #define KEM_BENCH_SECONDS     1
-
 
 #define PARAMS_N 640
 #define PARAMS_NBAR 8
@@ -21,8 +20,7 @@
 #define BYTES_PKHASH CRYPTO_BYTES
  
 
- 
- 
+
 static int kem_test(const char *named_parameters, int iterations) 
 {
  
@@ -47,6 +45,8 @@ uint8_t pk[CRYPTO_PUBLICKEYBYTES];
 	        return false; 
         }
     
+            
+            
     printf("Tests PASSED. All session keys matched.\n");
     printf("\n\n");
 
@@ -106,11 +106,10 @@ uint8_t pk[CRYPTO_PUBLICKEYBYTES];
             printf("\n ERROR!\n");
 	        return false; 
         }
-    
-    printf("Tests PASSED.\n");
-    printf("\n\n");
-
-
+ 
+ 
 exit:
     return (OK == true) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
+
+ 

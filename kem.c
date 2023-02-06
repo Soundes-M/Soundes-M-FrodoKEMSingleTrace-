@@ -6,11 +6,14 @@
 
 #include <string.h>
 #include "sha3/fips202.h"
+#include <stdio.h>
 
 #define COUNTERMEASURES 0
 
 uint16_t Sp_side_channel[(2*PARAMS_N+PARAMS_NBAR)*PARAMS_NBAR] = {0};  // contains secret data
 uint16_t Epp_side_channel[2*PARAMS_N*PARAMS_NBAR] = {0};
+uint16_t Ep_side_channel[PARAMS_N*PARAMS_NBAR] = {0};
+
 
 //uint16_t *Epp_side_channel = (uint16_t *)&Sp_side_channel[2*PARAMS_N*PARAMS_NBAR];  // contains secret data
 
@@ -184,17 +187,19 @@ int crypto_kem_dec(unsigned char *ss, const unsigned char *ct, const unsigned ch
     uint8_t *Fin_ct = &Fin[0];
     uint8_t *Fin_k = &Fin[CRYPTO_CIPHERTEXTBYTES];           // contains secret data
     uint8_t shake_input_seedSEprime[1 + CRYPTO_BYTES];       // contains secret data
-
+    FILE *fptrSp, *fptrEpp;
     // Compute W = C - Bp*S (mod q), and decode the randomness mu
     frodo_unpack(Bp, PARAMS_N*PARAMS_NBAR, ct_c1, (PARAMS_LOGQ*PARAMS_N*PARAMS_NBAR)/8, PARAMS_LOGQ);
  
     frodo_unpack(C, PARAMS_NBAR*PARAMS_NBAR, ct_c2, (PARAMS_LOGQ*PARAMS_NBAR*PARAMS_NBAR)/8, PARAMS_LOGQ);
      
+    
     frodo_mul_bs(W, Bp, sk_S);
     frodo_sub(W, C, W);
     frodo_key_decode((uint16_t*)muprime, W);
     //for(int i=0;i<BYTES_PKHASH;i++)  printf("%ld :", muprime[i]);
-    
+     
+      
     // Generate (seedSE' || k') = G_2(pkh || mu')
     memcpy(pkh, sk_pkh, BYTES_PKHASH);
     shake(G2out, CRYPTO_BYTES + CRYPTO_BYTES, G2in, BYTES_PKHASH + BYTES_MU);
@@ -203,20 +208,45 @@ int crypto_kem_dec(unsigned char *ss, const unsigned char *ct, const unsigned ch
     shake_input_seedSEprime[0] = 0x96;
     memcpy(&shake_input_seedSEprime[1], seedSEprime, CRYPTO_BYTES);
     shake((uint8_t*)Sp, (2*PARAMS_N+PARAMS_NBAR)*PARAMS_NBAR*sizeof(uint16_t), shake_input_seedSEprime, 1 + CRYPTO_BYTES);
-    frodo_sample_n(Sp, PARAMS_N*PARAMS_NBAR);
     
     //Analyse the power consumption and get the S' values
+    printf("Get the random values fed to the CDT when sampling S' and store them in Sp file. This file will be used in order to reproduce the power consumption traces while sampling the SP matrice \n");
+    
+    printf("===============================================================\n \n \n");
+    fptrSp = fopen("Sp.txt", "w");
+    for(int i=0;i<PARAMS_N*PARAMS_NBAR;i++)
+    fprintf(fptrSp,"%d ,",Sp[i]);
+    fclose(fptrSp);
+    frodo_sample_n(Sp, PARAMS_N*PARAMS_NBAR);
+    fptrSp = fopen("Spsamples.txt", "w");
+    for(int i=0;i<PARAMS_N*PARAMS_NBAR;i++)
+    fprintf(fptrSp,"%d ,",Sp[i]);
+    fclose(fptrSp);
     get_side_channel_Sp(Sp); 
     
-    frodo_sample_n(Ep, PARAMS_N*PARAMS_NBAR);
     
+   
+    frodo_sample_n(Ep, PARAMS_N*PARAMS_NBAR);
+    //get_side_channel_Epp(Ep);  
     
     frodo_mul_add_sa_plus_e(BBp, Sp, Ep, pk_seedA);
 
-    // Generate Epp, and compute W = Sp*B + Epp
-    frodo_sample_n(Epp, PARAMS_NBAR*PARAMS_NBAR);   
-    
     //Analyse the power consumption and get the E'' values
+    printf("Get the random values fed to the CDT when sampling E' and store them in Ep file. This file will be used in order to reproduce the power consumption traces while sampling the Ep matrice \n");
+    printf("===============================================================\n \n \n");
+  
+    // Generate Epp, and compute W = Sp*B + Epp
+    fptrEpp = fopen("Epp.txt", "w");
+    for(int i=0;i<PARAMS_N*PARAMS_NBAR;i++)
+    fprintf(fptrEpp,"%d ,",Epp[i]);
+    fclose(fptrEpp);
+    frodo_sample_n(Epp, PARAMS_NBAR*PARAMS_NBAR);   
+    fptrEpp = fopen("Eppsamples.txt", "w");
+    for(int i=0;i<PARAMS_N*PARAMS_NBAR;i++)
+    fprintf(fptrEpp,"%d ,",Epp[i]);
+    fclose(fptrEpp);
+     
+          
     get_side_channel_Epp(Epp);  
     
     frodo_unpack(B, PARAMS_N*PARAMS_NBAR, pk_b, CRYPTO_PUBLICKEYBYTES - BYTES_SEED_A, PARAMS_LOGQ);
@@ -248,12 +278,12 @@ int crypto_kem_dec(unsigned char *ss, const unsigned char *ct, const unsigned ch
     ct_select((uint8_t*)Fin_k, (uint8_t*)kprime, (uint8_t*)sk_s, CRYPTO_BYTES, selector);
     shake(ss, CRYPTO_BYTES, Fin, CRYPTO_CIPHERTEXTBYTES + CRYPTO_BYTES);
 
- 
+    ////////////////////////Print message for testing
     printf("\n");
     printf("Session key printed during the decryption:\n");
     for (int i=0;i<CRYPTO_BYTES; i++) printf("%d ", ss[i]);
     printf("\n");
-    
+   
     
     // Cleanup:
     clear_bytes((uint8_t *)W, PARAMS_NBAR*PARAMS_NBAR*sizeof(uint16_t));
@@ -271,22 +301,33 @@ void get_side_channel_Sp(uint16_t* Sp){
 
  for(int i=0;i<PARAMS_N*PARAMS_NBAR;i++) Sp_side_channel[i] = Sp[i];
  
+ 
 }
 
 
 void get_side_channel_Epp(uint16_t* Epp){
 
- for(int i=0;i<PARAMS_N*PARAMS_NBAR;i++) Epp_side_channel[i] = Epp[i];
+ for(int i=0;i<PARAMS_N*PARAMS_NBAR;i++){ Epp_side_channel[i] = Epp[i];
+  
+} 
 
+}
+
+void get_side_channel_Ep(uint16_t* Ep){
+
+ for(int i=0;i<PARAMS_N*PARAMS_NBAR;i++) Ep_side_channel[i] = Ep[i];
+ 
+ 
 }
 
 unsigned char * secret_key_recovery(const unsigned char *ct, const unsigned char *pk)
 {
-
+    const uint8_t *pk_seedA = &pk[0];
     uint16_t C[PARAMS_NBAR*PARAMS_NBAR] = {0};
     const uint8_t *ct_c2 = &ct[(PARAMS_LOGQ*PARAMS_N*PARAMS_NBAR)/8];
     const uint8_t *pk_b = &pk[BYTES_SEED_A];
     uint16_t B[PARAMS_N*PARAMS_NBAR] = {0}; 
+    uint16_t rhs[PARAMS_N*PARAMS_NBAR] = {0}; 
     uint16_t Bp[PARAMS_N*PARAMS_NBAR] = {0}; 
     uint16_t V[PARAMS_NBAR*PARAMS_NBAR] = {0};        
     uint16_t Wp[PARAMS_NBAR*PARAMS_NBAR] = {0};
@@ -312,10 +353,12 @@ unsigned char * secret_key_recovery(const unsigned char *ct, const unsigned char
     
     frodo_unpack(C, PARAMS_NBAR*PARAMS_NBAR, ct_c2, (PARAMS_LOGQ*PARAMS_NBAR*PARAMS_NBAR)/8, PARAMS_LOGQ);
     frodo_unpack(B, PARAMS_N*PARAMS_NBAR, pk_b, CRYPTO_PUBLICKEYBYTES - BYTES_SEED_A, PARAMS_LOGQ);
+
    //We know that C=C'
    //unpack(c2)=Sp*B + Epp+Encode(mu')
    //unpack(c2)-Sp*B-Epp = Encode(mu')
-   // wp= Encode(mu')
+   // wp= Encode(mu') 
+    Sp_side_channel[0] = Sp_side_channel[0]   ;
     frodo_mul_add_sb_plus_e(V, B, Sp_side_channel, Epp_side_channel);
     frodo_sub(Wp, C, V);  
     frodo_key_decode((uint16_t*)muprime, Wp);
@@ -334,6 +377,11 @@ unsigned char * secret_key_recovery(const unsigned char *ct, const unsigned char
     // Compute the hash  ss = F(ct||KK) 
     shake(ss, CRYPTO_BYTES, Fin, CRYPTO_CIPHERTEXTBYTES + CRYPTO_BYTES);
     
+    // Caclculate B'=S*A+E' 
+    frodo_mul_add_sa_plus_e(rhs, Sp_side_channel, Ep_side_channel, pk_seedA);
+    frodo_sub(rhs,Bp, rhs);  //this is supposed  to e zero if the Sp is correct
+ 
+     
     printf("\n");
     printf("Session Key recovery:\n");
     for (int i=0;i<CRYPTO_BYTES; i++) printf("%d ", ss[i]);
